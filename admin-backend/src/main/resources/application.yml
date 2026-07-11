@@ -1,0 +1,24 @@
+server:
+  port: 8080
+
+supabase:
+  # Default values for local dev. You must set these in Docker.
+  # Example:
+  #   SUPABASE_JWKS_URL=https://<project>.supabase.co/auth/v1/keys
+  #   SUPABASE_JWT_ISSUER=https://<project>.supabase.co/auth/v1
+  jwks-url: ${SUPABASE_JWKS_URL:https://example.supabase.co/auth/v1/keys}
+  jwt-issuer: ${SUPABASE_JWT_ISSUER:https://example.supabase.co/auth/v1}
+
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/postgres}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+  jdbc:
+    template:
+      fetch-size: 100
+
+logging:
+  level:
+    root: INFO

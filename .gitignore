@@ -1,0 +1,87 @@
+# Monorepo .gitignore for Java (Maven) + Node/Next projects
+# See: https://help.github.com/articles/ignoring-files/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+lerna-debug.log*
+
+# Runtime files
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Node
+node_modules/
+**/node_modules/
+
+# Next.js / front-end build
+.next/
+.next/cache/
+/out/
+/dist/
+/build/
+
+# Vercel / Netlify
+.vercel/
+.netlify/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# TypeScript
+*.tsbuildinfo
+
+# Coverage
+coverage/
+.nyc_output/
+
+# IDEs and editors
+.vscode/
+.idea/
+*.iml
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# Java / Maven
+**/target/
+*.class
+*.jar
+*.war
+*.ear
+.mvn/
+
+# Docker
+docker-compose.override.yml
+docker-compose.*.yml
+
+# Build / temp
+tmp/
+temp/
+dist/
+
+# Agents / tooling
+.agents
+
+# Misc
+*.tmp
+*.bak
+
+# Keep local config out
+.env.local
+/.env
+

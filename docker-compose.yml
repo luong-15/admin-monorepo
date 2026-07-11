@@ -1,0 +1,14 @@
+services:
+  admin-frontend:
+    build: ./admin-frontend
+    ports:
+      - "3001:3000"
+    environment:
+      - NEXT_PUBLIC_ADMIN_API_BASE=http://admin-backend:8080
+    depends_on:
+      - admin-backend
+
+  admin-backend:
+    build: ./admin-backend
+    ports:
+      - "8080:8080"
