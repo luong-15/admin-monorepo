@@ -9,13 +9,6 @@ export function createReadOnlyServerClient() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
-      global: {
-        fetch: (url: RequestInfo | URL, options: RequestInit = {}) =>
-          fetch(url, {
-            ...options,
-            agent: { rejectUnauthorized: false },
-          } as any),
-      },
       auth: {
         persistSession: false,
         autoRefreshToken: false,
@@ -41,18 +34,8 @@ export async function createServerClient() {
               cookieStore.set(name, value, options),
             );
           } catch {
-            // The "setAll" method was called from a Server Component.
-            // This can be ignored if you have proxy refreshing
-            // user sessions.
           }
         },
-      },
-      global: {
-        fetch: (url: RequestInfo | URL, options: RequestInit = {}) =>
-          fetch(url, {
-            ...options,
-            agent: { rejectUnauthorized: false },
-          } as any),
       },
     },
   );
@@ -78,13 +61,6 @@ export async function createAdminServerClient() {
             // The "setAll" method was called from a Server Component.
           }
         },
-      },
-      global: {
-        fetch: (url: RequestInfo | URL, options: RequestInit = {}) =>
-          fetch(url, {
-            ...options,
-            agent: { rejectUnauthorized: false },
-          } as any),
       },
     },
   );

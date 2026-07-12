@@ -85,12 +85,15 @@ export default function CategoriesPage() {
 
   // Gửi Form (Tạo mới hoặc Cập nhật)
   const generateSlug = (name: string): string => {
-    return name
+    // Normalize Vietnamese characters (é -> e, ẩ -> a, ...), then slugify.
+    const normalized = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+    return normalized
       .toLowerCase()
       .trim()
-      .replace(/[ ^\w\s-]/g, "") // Remove special chars (simple char class)
-      .replace(/\\s+|[ _-]+/g, "-") // Replace spaces/_ with single -
-      .replace(/^-|-$/g, ""); // Trim leading/trailing -
+      .replace(/[^a-z0-9]+/g, "-") // anything non-alphanumeric -> '-'
+      .replace(/-+/g, "-") // collapse multiple '-'
+      .replace(/^-|-$/g, ""); // trim leading/trailing '-'
   };
 
   const handleCategorySubmit = async (e: React.FormEvent) => {

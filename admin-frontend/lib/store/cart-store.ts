@@ -7,7 +7,7 @@ interface CartState {
   isOpen: boolean;
   isSyncing: boolean;
   lastSynced: number;
-  // internal only: prevent merge loop
+
   _lastMergedUserId?: string | null;
 
   // Actions
@@ -39,8 +39,6 @@ export const useCartStore = create<CartState>()(
       lastSynced: 0,
       // user merge guard to avoid merging local cart multiple times per login
       _lastMergedUserId: null,
-
-
 
       addToCart: async (product: Product) => {
         set({ isSyncing: true });
@@ -160,9 +158,8 @@ export const useCartStore = create<CartState>()(
       },
 
       mergeLocalCartToServer: async () => {
-        const userMergedGuard = get()._lastMergedUserId;
-        if (userMergedGuard) return;
 
+        if (get()._lastMergedUserId) return;
 
         // Merge by upserting each local item (API will create/update cart_items for this user)
         const items = get().cartItems;
@@ -178,7 +175,10 @@ export const useCartStore = create<CartState>()(
             await fetch("/api/cart", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ product_id: item.product.id, quantity: item.quantity }),
+              body: JSON.stringify({
+                product_id: item.product.id,
+                quantity: item.quantity,
+              }),
             });
           }
         } catch (e) {
@@ -189,11 +189,9 @@ export const useCartStore = create<CartState>()(
         set({ _lastMergedUserId: "merged" });
       },
 
-
       hydrateFromServer: async () => {
         await get().syncCart();
       },
-
 
       getTotalItems: () =>
         get().cartItems.reduce((sum, item) => sum + item.quantity, 0),

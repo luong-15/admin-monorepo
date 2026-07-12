@@ -23,8 +23,7 @@ public class SecurityConfig {
                         // Admin endpoints protected
                         .requestMatchers("/api/admin/**").authenticated()
                         .anyRequest().permitAll()
-                )
-                .httpBasic(Customizer.withDefaults());
+                );
 
         http.addFilterBefore(supabaseJwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();

@@ -10,6 +10,12 @@ import java.util.Map;
 @RequestMapping("/api/admin/orders")
 public class AdminOrdersController {
 
+    private final org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
+
+    public AdminOrdersController(org.springframework.jdbc.core.JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
     @GetMapping
     public ResponseEntity<?> getOrders(
             @RequestParam(defaultValue = "1") int page,
@@ -17,16 +23,80 @@ public class AdminOrdersController {
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String status
     ) {
-        // TODO: implement JDBC queries for orders + order_items
+        // JDBC implementation (best-effort). FE expects { data, pagination }
+        int offset = Math.max(0, (page - 1) * limit);
+
+        String whereSql = " where 1=1 ";
+        java.util.List<Object> params = new java.util.ArrayList<>();
+
+        if (search != null && !search.isBlank()) {
+            whereSql += " and (cast(order_number as text) like ? or lower(shipping_name) like lower(?)) ";
+            String q = "%" + search.trim() + "%";
+            params.add(q);
+            params.add(q);
+        }
+
+        if (status != null && !status.isBlank() && !"all".equalsIgnoreCase(status)) {
+            whereSql += " and status = ? ";
+            params.add(status.trim());
+        }
+
+        long total = 0;
+        try {
+            total = jdbcTemplate.queryForObject(
+                    "select count(*) from orders " + whereSql,
+                    params.toArray(),
+                    Long.class
+            );
+        } catch (Exception ignored) {
+            total = 0;
+        }
+
+        int totalPages = (int) Math.ceil(total / (double) limit);
+        if (totalPages < 0) totalPages = 0;
+
+        String sql = "select * from orders " + whereSql + " order by created_at desc limit ? offset ?";
+        java.util.List<Map<String, Object>> rows;
+        try {
+            java.util.List<Object> dataParams = new java.util.ArrayList<>(params);
+            dataParams.add(limit);
+            dataParams.add(offset);
+            rows = jdbcTemplate.queryForList(sql, dataParams.toArray());
+        } catch (Exception ignored) {
+            rows = java.util.List.of();
+        }
+
+        // FE expects order_items details only when fetching /{id}
         return ResponseEntity.ok(Map.of(
-                "data", List.of(),
+                "data", rows,
                 "pagination", Map.of(
                         "page", page,
                         "limit", limit,
-                        "total", 0,
-                        "totalPages", 0
+                        "total", total,
+                        "totalPages", totalPages
                 )
         ));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getOrderDetails(@PathVariable("id") String id) {
+        // Best-effort: returns order + its order_items + related products.
+        try {
+            Map<String, Object> order = jdbcTemplate.queryForMap("select * from orders where id=? limit 1", id);
+
+            java.util.List<Map<String, Object>> items = jdbcTemplate.queryForList(
+                    "select oi.*, p.image_url as product_image, p.name as product_name " +
+                            "from order_items oi " +
+                            "join products p on p.id = oi.product_id " +
+                            "where oi.order_id = ? order by oi.id asc",
+                    id
+            );
+            order.put("order_items", items);
+
+            return ResponseEntity.ok(order);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     // FE uses PATCH /api/admin/orders/{id}
@@ -35,8 +105,26 @@ public class AdminOrdersController {
             @PathVariable("id") String id,
             @RequestBody Map<String, Object> body
     ) {
-        // TODO: implement update orders set status/payment_status/admin_notes
-        return ResponseEntity.ok(Map.of("success", true));
+        try {
+            // Update only known fields if present
+            String status = body.get("status") != null ? body.get("status").toString() : null;
+            String paymentStatus = body.get("payment_status") != null ? body.get("payment_status").toString() : null;
+            String adminNotes = body.get("admin_notes") != null ? body.get("admin_notes").toString() : null;
+
+            if (status != null) {
+                jdbcTemplate.update("update orders set status=? where id=?", status, id);
+            }
+            if (paymentStatus != null) {
+                jdbcTemplate.update("update orders set payment_status=? where id=?", paymentStatus, id);
+            }
+            if (adminNotes != null) {
+                jdbcTemplate.update("update orders set admin_notes=? where id=?", adminNotes, id);
+            }
+
+            return ResponseEntity.ok(Map.of("success", true));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 }
 

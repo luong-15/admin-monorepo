@@ -1,15 +1,5 @@
 import { createServerClient as createSupabaseServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import https from "https";
-
-const customFetch = (url: RequestInfo | URL, options: RequestInit = {}) => {
-  return fetch(url, {
-    ...options,
-    agent: new https.Agent({
-      rejectUnauthorized: false,
-    }),
-  } as any);
-};
 
 export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -35,9 +25,6 @@ export async function proxy(request: NextRequest) {
             supabaseResponse.cookies.set(name, value, options),
           );
         },
-      },
-      global: {
-        fetch: customFetch,
       },
     },
   );

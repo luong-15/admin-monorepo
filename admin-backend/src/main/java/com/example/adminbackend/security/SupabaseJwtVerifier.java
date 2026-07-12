@@ -50,11 +50,20 @@ public class SupabaseJwtVerifier {
         JWSHeader header = jwt.getHeader();
         RSAKey rsaKey = null;
 
-        JWK jwk = jwkSource.get(new JWKSelector(new JWKMatcher.Builder()
-                .keyType(KeyType.RSA)
-                .keyID(header.getKeyID())
-                .build()), null).get(0);
+        // JWKS can be temporarily empty / kid mismatch -> must not crash.
+        var matches = jwkSource.get(
+                new JWKSelector(new JWKMatcher.Builder()
+                        .keyType(KeyType.RSA)
+                        .keyID(header.getKeyID())
+                        .build()),
+                null
+        );
 
+        if (matches == null || matches.isEmpty()) {
+            throw new SecurityException("Unable to resolve signing key from JWKS");
+        }
+
+        JWK jwk = matches.get(0);
         if (jwk instanceof RSAKey k) {
             rsaKey = k;
         }
