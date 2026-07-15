@@ -44,7 +44,7 @@ export default function UsersPage() {
   const [userDialogOpen, setUserDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [showUrlInput, setShowUrlInput] = useState(false);
-  
+
   const [userForm, setUserForm] = useState({
     full_name: "",
     email: "",
@@ -87,7 +87,9 @@ export default function UsersPage() {
         params.append("search", debouncedUsersSearch);
       }
 
-      const response = await fetch(`/api/admin/users?${params}`);
+      const response = await fetch(
+        `http://localhost:8080/api/admin/users?${params}`,
+      );
       if (!response.ok) {
         throw new Error("Failed to fetch users");
       }
@@ -110,7 +112,7 @@ export default function UsersPage() {
     e.preventDefault();
 
     try {
-      const response = await fetch("/api/admin/users", {
+      const response = await fetch("http://localhost:8080/api/admin/users", {
         method: "PATCH",
         cache: "no-store",
         headers: {
@@ -158,9 +160,12 @@ export default function UsersPage() {
     if (!confirm("Bạn có chắc chắn muốn xóa người dùng này?")) return;
 
     try {
-      const response = await fetch(`/api/admin/users?id=${id}`, {
-        method: "DELETE",
-      });
+      const response = await fetch(
+        `http://localhost:8080/api/admin/users?id=${id}`,
+        {
+          method: "DELETE",
+        },
+      );
 
       if (!response.ok) {
         throw new Error("Failed to delete user");
@@ -196,8 +201,12 @@ export default function UsersPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Quản lý Người dùng</h1>
-        <p className="text-muted-foreground">Quản lý thông tin và tài khoản khách hàng</p>
+        <h1 className="text-3xl font-bold tracking-tight">
+          Quản lý Người dùng
+        </h1>
+        <p className="text-muted-foreground">
+          Quản lý thông tin và tài khoản khách hàng
+        </p>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
@@ -208,22 +217,26 @@ export default function UsersPage() {
             onChange={(e) => setUsersSearch(e.target.value)}
           />
         </div>
-        
-        <Dialog open={userDialogOpen} onOpenChange={(open) => {
-          setUserDialogOpen(open);
-          if(!open) setShowUrlInput(false);
-        }}>
+
+        <Dialog
+          open={userDialogOpen}
+          onOpenChange={(open) => {
+            setUserDialogOpen(open);
+            if (!open) setShowUrlInput(false);
+          }}
+        >
           <DialogContent className="sm:max-w-150">
             <DialogHeader>
               <DialogTitle>
-                {selectedUser ? "Chỉnh sửa thành viên" : "Xem thông tin người dùng"}
+                {selectedUser
+                  ? "Chỉnh sửa thành viên"
+                  : "Xem thông tin người dùng"}
               </DialogTitle>
             </DialogHeader>
             <form onSubmit={handleUserSubmit} className="space-y-6">
-              
               {/* KHU VỰC CHỈNH SỬA AVATAR ĐÃ ĐƯỢC TINH CHỈNH */}
               <div className="flex flex-col items-center justify-center border-b pb-6 sm:flex-row sm:justify-start gap-6">
-                <div 
+                <div
                   className="group relative h-24 w-24 cursor-pointer rounded-full border-2 border-primary/20 p-1 transition-all hover:border-primary"
                   onClick={() => fileInputRef.current?.click()}
                   onDragOver={(e) => e.preventDefault()}
@@ -244,10 +257,10 @@ export default function UsersPage() {
                       <span className="text-[10px] font-medium">Thay ảnh</span>
                     </div>
                   </div>
-                  <input 
-                    type="file" 
-                    ref={fileInputRef} 
-                    className="hidden" 
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    className="hidden"
                     accept="image/*"
                     onChange={(e) => {
                       const file = e.target.files?.[0];
@@ -257,28 +270,32 @@ export default function UsersPage() {
                 </div>
 
                 <div className="flex-1 text-center sm:text-left space-y-2">
-                  <Label className="text-base font-semibold">Ảnh đại diện</Label>
+                  <Label className="text-base font-semibold">
+                    Ảnh đại diện
+                  </Label>
                   <p className="text-xs text-muted-foreground">
-                    Kéo thả ảnh vào hình tròn, hoặc click để tải lên từ thiết bị.
+                    Kéo thả ảnh vào hình tròn, hoặc click để tải lên từ thiết
+                    bị.
                   </p>
                   <div className="flex items-center justify-center sm:justify-start gap-2">
-                    <Button 
-                      type="button" 
-                      variant="secondary" 
-                      size="sm" 
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
                       className="h-8 text-xs gap-1.5"
                       onClick={() => fileInputRef.current?.click()}
                     >
                       <UploadCloud className="h-3.5 w-3.5" /> Tải ảnh lên
                     </Button>
-                    <Button 
-                      type="button" 
-                      variant="ghost" 
-                      size="sm" 
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
                       className="h-8 text-xs gap-1.5"
                       onClick={() => setShowUrlInput(!showUrlInput)}
                     >
-                      <Link className="h-3.5 w-3.5" /> {showUrlInput ? "Ẩn URL" : "Nhập URL ảnh"}
+                      <Link className="h-3.5 w-3.5" />{" "}
+                      {showUrlInput ? "Ẩn URL" : "Nhập URL ảnh"}
                     </Button>
                   </div>
                 </div>
@@ -291,9 +308,15 @@ export default function UsersPage() {
                   <Input
                     id="avatar-url"
                     type="text"
-                    value={userForm.avatar_url.startsWith("data:") ? "" : userForm.avatar_url}
+                    value={
+                      userForm.avatar_url.startsWith("data:")
+                        ? ""
+                        : userForm.avatar_url
+                    }
                     placeholder="https://example.com/avatar.jpg"
-                    onChange={(e) => setUserForm({ ...userForm, avatar_url: e.target.value })}
+                    onChange={(e) =>
+                      setUserForm({ ...userForm, avatar_url: e.target.value })
+                    }
                   />
                 </div>
               )}
@@ -408,9 +431,11 @@ export default function UsersPage() {
                   {/* Bổ sung Avatar nhỏ ở Table cho UI sinh động */}
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-3">
-                      <img 
-                        src={(user as any).avatar_url || "/placeholder-user.jpg"} 
-                        alt="" 
+                      <img
+                        src={
+                          (user as any).avatar_url || "/placeholder-user.jpg"
+                        }
+                        alt=""
                         className="h-8 w-8 rounded-full object-cover border"
                       />
                       <span>{user.full_name || "-"}</span>

@@ -57,9 +57,12 @@ export default function CategoriesPage() {
   const fetchCategories = useCallback(async () => {
     try {
       setCategoriesLoading(true);
-      const response = await fetch("/api/admin/categories", {
-        cache: "no-store",
-      });
+      const response = await fetch(
+        "http://localhost:8080/api/admin/categories",
+        {
+          cache: "no-store",
+        },
+      );
       const data = await response.json();
       // Đảm bảo data là một mảng
       setCategories(Array.isArray(data) ? data : data?.data || []);
@@ -147,9 +150,12 @@ export default function CategoriesPage() {
       // Wait then refresh data directly
       setTimeout(async () => {
         try {
-          const freshResponse = await fetch(`/api/admin/categories`, {
-            cache: "no-store",
-          });
+          const freshResponse = await fetch(
+            `http://localhost:8080/api/admin/categories`,
+            {
+              cache: "no-store",
+            },
+          );
           const freshData = await freshResponse.json();
 
           setCategories(
