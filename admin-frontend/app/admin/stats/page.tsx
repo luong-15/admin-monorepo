@@ -1,26 +1,39 @@
-"use client"
+"use client";
 
-import { useEffect, useState, useCallback } from "react"
-import { fetchWithAuth } from "@/lib/utils"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Badge } from "@/components/ui/badge"
-import { Package, ShoppingCart, Users, DollarSign, TrendingUp, BarChart3 } from "lucide-react"
-import { formatCurrency } from "@/lib/currency"
+import { useEffect, useState, useCallback } from "react";
+import { fetchWithAuth } from "@/lib/utils";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import {
+  Package,
+  ShoppingCart,
+  Users,
+  DollarSign,
+  TrendingUp,
+  BarChart3,
+} from "lucide-react";
+import { formatCurrency } from "@/lib/currency";
 
 interface Stats {
-  totalProducts: number
-  totalOrders: number
-  totalUsers: number
-  totalRevenue: number
+  totalProducts: number;
+  totalOrders: number;
+  totalUsers: number;
+  totalRevenue: number;
 }
 
-function StatCard({ title, value, icon: Icon, description, trend }: {
-  title: string
-  value: string | number
-  icon: any
-  description: string
-  trend?: string
+function StatCard({
+  title,
+  value,
+  icon: Icon,
+  description,
+  trend,
+}: {
+  title: string;
+  value: string | number;
+  icon: any;
+  description: string;
+  trend?: string;
 }) {
   return (
     <Card className="relative overflow-hidden border-border/40 shadow-sm hover:shadow-md transition-all bg-white dark:bg-card/50 rounded-2xl group">
@@ -28,7 +41,9 @@ function StatCard({ title, value, icon: Icon, description, trend }: {
         <Icon className="h-32 w-32" />
       </div>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{title}</CardTitle>
+        <CardTitle className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+          {title}
+        </CardTitle>
         <div className="rounded-xl bg-primary/10 p-2.5 text-primary">
           <Icon className="h-5 w-5" />
         </div>
@@ -36,16 +51,19 @@ function StatCard({ title, value, icon: Icon, description, trend }: {
       <CardContent>
         <div className="text-3xl font-black tracking-tighter">{value}</div>
         <div className="flex items-center gap-2 mt-2">
-          <p className="text-xs text-muted-foreground font-medium">{description}</p>
+          <p className="text-xs text-muted-foreground font-medium">
+            {description}
+          </p>
           {trend && (
             <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-              <TrendingUp className="h-3 w-3 mr-0.5" />{trend}
+              <TrendingUp className="h-3 w-3 mr-0.5" />
+              {trend}
             </Badge>
           )}
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 function StatCardSkeleton() {
@@ -60,34 +78,36 @@ function StatCardSkeleton() {
         <Skeleton className="h-3 w-40" />
       </CardContent>
     </Card>
-  )
+  );
 }
 
 export default function StatsPage() {
-  const [stats, setStats] = useState<Stats | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchStats = useCallback(async () => {
     try {
-      setLoading(true)
-      setError(null)
-      const res = await fetchWithAuth("http://localhost:8080/api/admin/stats")
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      const json = await res.json()
-      const statsData = json.data ?? json
-      setStats(statsData)
+      setLoading(true);
+      setError(null);
+      const res = await fetchWithAuth(
+        `${process.env.NEXT_PUBLIC_ADMIN_API_BASE}/api/admin/stats`,
+      );
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      const statsData = json.data ?? json;
+      setStats(statsData);
     } catch (err) {
-      console.error("Error fetching stats:", err)
-      setError("Không thể tải dữ liệu thống kê.")
+      console.error("Error fetching stats:", err);
+      setError("Không thể tải dữ liệu thống kê.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
-    fetchStats()
-  }, [fetchStats])
+    fetchStats();
+  }, [fetchStats]);
 
   return (
     <div className="p-6 space-y-8">
@@ -98,7 +118,9 @@ export default function StatsPage() {
             <BarChart3 className="h-9 w-9 text-primary" />
             Thống kê
           </h1>
-          <p className="text-muted-foreground text-sm">Tổng quan dữ liệu kinh doanh toàn thời gian.</p>
+          <p className="text-muted-foreground text-sm">
+            Tổng quan dữ liệu kinh doanh toàn thời gian.
+          </p>
         </div>
         <button
           onClick={fetchStats}
@@ -111,7 +133,9 @@ export default function StatsPage() {
       {/* Error */}
       {error && (
         <Card className="border-destructive/40 bg-destructive/5 rounded-2xl">
-          <CardContent className="py-4 text-sm text-destructive font-medium">{error}</CardContent>
+          <CardContent className="py-4 text-sm text-destructive font-medium">
+            {error}
+          </CardContent>
         </Card>
       )}
 
@@ -158,18 +182,31 @@ export default function StatsPage() {
           <CardContent>
             <div className="divide-y divide-border/60">
               {[
-                { label: "Tổng sản phẩm", value: `${stats.totalProducts} sản phẩm` },
+                {
+                  label: "Tổng sản phẩm",
+                  value: `${stats.totalProducts} sản phẩm`,
+                },
                 { label: "Tổng đơn hàng", value: `${stats.totalOrders} đơn` },
-                { label: "Tổng khách hàng", value: `${stats.totalUsers} người dùng` },
-                { label: "Doanh thu tích lũy", value: formatCurrency(stats.totalRevenue) },
+                {
+                  label: "Tổng khách hàng",
+                  value: `${stats.totalUsers} người dùng`,
+                },
+                {
+                  label: "Doanh thu tích lũy",
+                  value: formatCurrency(stats.totalRevenue),
+                },
                 {
                   label: "Giá trị trung bình / đơn",
-                  value: stats.totalOrders > 0
-                    ? formatCurrency(stats.totalRevenue / stats.totalOrders)
-                    : "—"
+                  value:
+                    stats.totalOrders > 0
+                      ? formatCurrency(stats.totalRevenue / stats.totalOrders)
+                      : "—",
                 },
               ].map(({ label, value }) => (
-                <div key={label} className="flex items-center justify-between py-3 text-sm">
+                <div
+                  key={label}
+                  className="flex items-center justify-between py-3 text-sm"
+                >
                   <span className="text-muted-foreground">{label}</span>
                   <span className="font-bold">{value}</span>
                 </div>
@@ -179,5 +216,5 @@ export default function StatsPage() {
         </Card>
       )}
     </div>
-  )
+  );
 }

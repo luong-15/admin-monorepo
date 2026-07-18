@@ -91,7 +91,7 @@ export default function ProductsPage() {
   const fetchCategories = useCallback(async () => {
     try {
       const response = await fetchWithAuth(
-        "http://localhost:8080/api/admin/categories",
+        `${process.env.NEXT_PUBLIC_ADMIN_API_BASE}/api/admin/categories`,
         { cache: "no-store" },
       );
       const data = await response.json();
@@ -115,7 +115,7 @@ export default function ProductsPage() {
         params.append("category_id", productsCategoryFilter);
 
       const response = await fetchWithAuth(
-        `http://localhost:8080/api/admin/products?${params}`,
+        `${process.env.NEXT_PUBLIC_ADMIN_API_BASE}/api/admin/products?${params}`,
         {
           cache: "no-store",
         },
@@ -175,16 +175,20 @@ export default function ProductsPage() {
       };
 
       const method = selectedProduct ? "PUT" : "POST";
-      const response = await fetchWithAuth("http://localhost:8080/api/admin/products", {
-        cache: "no-store",
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(
-          selectedProduct
-            ? { id: selectedProduct.id, ...productData }
-            : productData,
-        ),
-      });
+      const response = await fetchWithAuth(
+        `${process.env.NEXT_PUBLIC_ADMIN_API_BASE}/api/admin/products`,
+
+        {
+          cache: "no-store",
+          method,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(
+            selectedProduct
+              ? { id: selectedProduct.id, ...productData }
+              : productData,
+          ),
+        },
+      );
 
       if (!response.ok) throw new Error("Failed to save");
 
@@ -216,7 +220,7 @@ export default function ProductsPage() {
           });
 
           const freshResponse = await fetchWithAuth(
-            `http://localhost:8080/api/admin/products?${params}`,
+            `${process.env.NEXT_PUBLIC_ADMIN_API_BASE}/api/admin/products?${params}`,
             {
               cache: "no-store",
             },
@@ -238,9 +242,12 @@ export default function ProductsPage() {
 
   const handleDeleteProduct = async (id: string) => {
     if (!confirm("Xóa sản phẩm này?")) return;
-    await fetchWithAuth(`http://localhost:8080/api/admin/products?id=${id}`, {
-      method: "DELETE",
-    });
+    await fetchWithAuth(
+      `${process.env.NEXT_PUBLIC_ADMIN_API_BASE}/api/admin/products?id=${id}`,
+      {
+        method: "DELETE",
+      },
+    );
     fetchProducts();
   };
 

@@ -1,14 +1,27 @@
 services:
+  admin-backend:
+    build: ./admin-backend
+    ports:
+      - "8080:8080"
+    environment:
+      # Spring Boot defaults trong application.yml đang dùng biến env.
+      # Bạn có thể set từ ngoài để trỏ tới Supabase/Datasource thật.
+      - SUPABASE_JWKS_URL=${SUPABASE_JWKS_URL:-https://jbpaivqemmarharbjbyv.supabase.co/auth/v1/keys}
+      - SUPABASE_JWT_ISSUER=${SUPABASE_JWT_ISSUER:-https://jbpaivqemmarharbjbyv.supabase.co/auth/v1}
+      - SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET:-z95fJ4L21V0v69rHXd+lZwvdA2zfrWY7u+1SHwrJdz9cRqF51qHbMIPPQf9CeehVqgWvS5qThq7SvX/Vsrdexw==}
+      - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL:-jdbc:postgresql://aws-1-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require}
+      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME:-postgres.jbpaivqemmarharbjbyv}
+      - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD:-QhKPb9VbpT2pBoMI}
+
   admin-frontend:
     build: ./admin-frontend
     ports:
       - "3001:3000"
     environment:
       - NEXT_PUBLIC_ADMIN_API_BASE=http://admin-backend:8080
+      # Các env Supabase cho client của FE
+      - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL:-}
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY:-}
+      - NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL=${NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL:-http://localhost:3001/dashboard}
     depends_on:
       - admin-backend
-
-  admin-backend:
-    build: ./admin-backend
-    ports:
-      - "8080:8080"

@@ -179,7 +179,7 @@ export default function LoginPage() {
         notifySuccess(
           "Đăng nhập thành công! Chào mừng bạn quay trở lại TechNova.",
         );
-        router.push("/");
+        router.push("/admin");
         return; // giữ loading=true trong lúc redirect
       } else {
         setError("Đăng nhập thất bại. Vui lòng thử lại.");

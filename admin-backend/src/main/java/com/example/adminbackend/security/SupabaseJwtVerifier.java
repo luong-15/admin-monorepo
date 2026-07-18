@@ -163,20 +163,19 @@ public class SupabaseJwtVerifier {
         String userId = claimsSet.getSubject();
         String email = claimsSet.getStringClaim("email");
 
-        // Trích xuất Role của Supabase
-        String role = claimsSet.getStringClaim("role"); // Thường Supabase sẽ để role ở root claim
-        
-        if (role == null) {
-            Object appMetadataObj = claimsSet.getClaim("app_metadata");
-            if (appMetadataObj instanceof Map<?, ?> meta) {
-                Object roleObj = meta.get("role");
-                if (roleObj != null) role = roleObj.toString();
-            }
+        // Trích xuất Role của Supabase: ưu tiên app_metadata.role
+        String role = null;
+        Object appMetadataObj = claimsSet.getClaim("app_metadata");
+        if (appMetadataObj instanceof Map<?, ?> meta) {
+            Object roleObj = meta.get("role");
+            if (roleObj != null) role = roleObj.toString();
         }
-        
+
+        // Fallback nếu token không có app_metadata.role
         if (role == null) {
             role = claimsSet.getStringClaim("user_role");
         }
+
 
         logger.debug("Extracted claims - UserId: {}, Email: {}, Role: {}", userId, email, role);
 

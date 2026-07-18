@@ -55,7 +55,9 @@ export default function AdminSettingsPage() {
 
   // Fetch settings on mount
   useEffect(() => {
-    fetchWithAuth("http://localhost:8080/api/admin/settings")
+    fetchWithAuth(
+      `${process.env.NEXT_PUBLIC_ADMIN_API_BASE}/api/admin/settings`,
+    )
       .then((res) => res.json())
       .then((data) => {
         if (data && Object.keys(data).length > 0) {
@@ -70,11 +72,14 @@ export default function AdminSettingsPage() {
 
   const handleSave = async () => {
     try {
-      const response = await fetchWithAuth("http://localhost:8080/api/admin/settings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(settings),
-      });
+      const response = await fetchWithAuth(
+        `${process.env.NEXT_PUBLIC_ADMIN_API_BASE}/api/admin/settings`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(settings),
+        },
+      );
       if (response.ok) {
         toast({
           title: "Thành công",
@@ -398,9 +403,7 @@ export default function AdminSettingsPage() {
                     <CardTitle className="text-2xl">
                       Cấu hình thanh toán
                     </CardTitle>
-                    <p className="text-muted-foreground">
-                      PayOS Webhook URL
-                    </p>
+                    <p className="text-muted-foreground">PayOS Webhook URL</p>
                   </div>
                 </div>
               </CardHeader>
@@ -408,15 +411,19 @@ export default function AdminSettingsPage() {
                 <div className="space-y-3">
                   <Label>Webhook URL</Label>
                   <p className="text-sm text-muted-foreground mb-2">
-                    Sao chép URL này vào PayOS Dashboard để nhận thông báo thanh toán
+                    Sao chép URL này vào PayOS Dashboard để nhận thông báo thanh
+                    toán
                   </p>
                   <div className="flex gap-2">
                     <Input
                       value={settings.webhook_url}
                       onChange={(e) =>
-                        setSettings({ ...settings, webhook_url: e.target.value })
+                        setSettings({
+                          ...settings,
+                          webhook_url: e.target.value,
+                        })
                       }
-                      placeholder={`${typeof window !== 'undefined' ? window.location.origin : 'https://your-domain.com'}/api/payos/webhook`}
+                      placeholder={`${typeof window !== "undefined" ? window.location.origin : "https://your-domain.com"}/api/payos/webhook`}
                       className="h-12 font-mono text-sm"
                       readOnly
                     />
@@ -424,11 +431,14 @@ export default function AdminSettingsPage() {
                       variant="outline"
                       size="icon"
                       onClick={() => {
-                        const url = settings.webhook_url || `${typeof window !== 'undefined' ? window.location.origin : 'https://your-domain.com'}/api/payos/webhook`;
+                        const url =
+                          settings.webhook_url ||
+                          `${typeof window !== "undefined" ? window.location.origin : "https://your-domain.com"}/api/payos/webhook`;
                         navigator.clipboard.writeText(url);
                         toast({
                           title: "Đã sao chép",
-                          description: "Webhook URL đã được sao chép vào clipboard",
+                          description:
+                            "Webhook URL đã được sao chép vào clipboard",
                         });
                       }}
                       className="h-12 w-12 shrink-0"

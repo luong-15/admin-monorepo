@@ -173,7 +173,7 @@ export default function OrdersPage() {
       if (ordersStatusFilter && ordersStatusFilter !== "all")
         params.append("status", ordersStatusFilter);
       const response = await fetchWithAuth(
-        `http://localhost:8080/api/admin/orders?${params}`,
+        `${process.env.NEXT_PUBLIC_ADMIN_API_BASE}/api/admin/orders?${params}`,
         { cache: "no-store" },
       );
       const data = await response.json();
@@ -205,7 +205,7 @@ export default function OrdersPage() {
     if (Object.keys(updates).length === 0) return;
     try {
       const response = await fetchWithAuth(
-        `http://localhost:8080/api/admin/orders/${selectedOrder.id}`,
+        `${process.env.NEXT_PUBLIC_ADMIN_API_BASE}/api/admin/orders/${selectedOrder.id}`,
         {
           method: "PATCH",
           cache: "no-store",
@@ -225,7 +225,7 @@ export default function OrdersPage() {
           try {
             const params = new URLSearchParams({ page: "1", limit: "50" });
             const freshResponse = await fetchWithAuth(
-              `http://localhost:8080/api/admin/orders?${params}`,
+              `${process.env.NEXT_PUBLIC_ADMIN_API_BASE}/api/admin/orders?${params}`,
               {
                 cache: "no-store",
               },
@@ -374,7 +374,7 @@ export default function OrdersPage() {
                           className="rounded-full hover:bg-primary hover:text-primary-foreground transition-all shadow-none"
                           onClick={async () => {
                             const res = await fetchWithAuth(
-                              `http://localhost:8080/api/admin/orders/${order.id}`,
+                              `${process.env.NEXT_PUBLIC_ADMIN_API_BASE}/api/admin/orders/${order.id}`,
                               { cache: "no-store" },
                             );
                             if (res.ok) {

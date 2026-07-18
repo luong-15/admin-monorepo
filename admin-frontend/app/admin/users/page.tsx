@@ -89,7 +89,7 @@ export default function UsersPage() {
       }
 
       const response = await fetchWithAuth(
-        `http://localhost:8080/api/admin/users?${params}`,
+        `${process.env.NEXT_PUBLIC_ADMIN_API_BASE}/api/admin/users?${params}`,
       );
       if (!response.ok) {
         throw new Error("Failed to fetch users");
@@ -113,17 +113,20 @@ export default function UsersPage() {
     e.preventDefault();
 
     try {
-      const response = await fetchWithAuth("http://localhost:8080/api/admin/users", {
-        method: "PATCH",
-        cache: "no-store",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetchWithAuth(
+        `${process.env.NEXT_PUBLIC_ADMIN_API_BASE}/api/admin/users`,
+        {
+          method: "PATCH",
+          cache: "no-store",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            id: selectedUser?.id,
+            ...userForm,
+          }),
         },
-        body: JSON.stringify({
-          id: selectedUser?.id,
-          ...userForm,
-        }),
-      });
+      );
 
       if (!response.ok) {
         throw new Error("Failed to update user");
@@ -162,7 +165,7 @@ export default function UsersPage() {
 
     try {
       const response = await fetchWithAuth(
-        `http://localhost:8080/api/admin/users?id=${id}`,
+        `${process.env.NEXT_PUBLIC_ADMIN_API_BASE}/api/admin/users?id=${id}`,
         {
           method: "DELETE",
         },

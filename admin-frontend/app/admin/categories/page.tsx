@@ -59,11 +59,12 @@ export default function CategoriesPage() {
     try {
       setCategoriesLoading(true);
       const response = await fetchWithAuth(
-        "http://localhost:8080/api/admin/categories",
+        `${process.env.NEXT_PUBLIC_ADMIN_API_BASE}/api/admin/categories`,
         {
           cache: "no-store",
         },
       );
+
       const data = await response.json();
       // Đảm bảo data là một mảng
       setCategories(Array.isArray(data) ? data : data?.data || []);
@@ -125,7 +126,7 @@ export default function CategoriesPage() {
       };
 
       const method = isEdit ? "PUT" : "POST";
-      const url = "http://localhost:8080/api/admin/categories";
+      const url = `${process.env.NEXT_PUBLIC_ADMIN_API_BASE}/api/admin/categories`;
 
       const response = await fetchWithAuth(url, {
         cache: "no-store",
@@ -152,11 +153,12 @@ export default function CategoriesPage() {
       setTimeout(async () => {
         try {
           const freshResponse = await fetchWithAuth(
-            `http://localhost:8080/api/admin/categories`,
+            `${process.env.NEXT_PUBLIC_ADMIN_API_BASE}/api/admin/categories`,
             {
               cache: "no-store",
             },
           );
+
           const freshData = await freshResponse.json();
 
           setCategories(
@@ -184,11 +186,12 @@ export default function CategoriesPage() {
       return;
     try {
       const response = await fetchWithAuth(
-        `http://localhost:8080/api/admin/categories?id=${id}`,
+        `${process.env.NEXT_PUBLIC_ADMIN_API_BASE}/api/admin/categories?id=${id}`,
         {
           method: "DELETE",
         },
       );
+
       if (!response.ok) throw new Error("Failed to delete category");
       setCategories((prev) => prev.filter((c) => c.id !== id));
     } catch (error) {
