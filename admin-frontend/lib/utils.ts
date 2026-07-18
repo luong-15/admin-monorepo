@@ -123,3 +123,25 @@ export function throttle<T extends (...args: unknown[]) => unknown>(
     }
   };
 }
+
+/**
+ * Perform a fetch request with Supabase access token in Authorization header
+ */
+import { createBrowserClient } from "@/lib/supabase/client";
+
+export async function fetchWithAuth(url: string, options: RequestInit = {}) {
+  const supabase = createBrowserClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+
+  const headers = {
+    ...options.headers,
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+
+  return fetch(url, {
+    ...options,
+    headers,
+  });
+}
+

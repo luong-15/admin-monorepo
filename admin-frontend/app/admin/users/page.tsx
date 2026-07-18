@@ -2,6 +2,7 @@
 
 import type React from "react";
 import { useEffect, useState, useCallback, useRef } from "react";
+import { fetchWithAuth } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -87,7 +88,7 @@ export default function UsersPage() {
         params.append("search", debouncedUsersSearch);
       }
 
-      const response = await fetch(
+      const response = await fetchWithAuth(
         `http://localhost:8080/api/admin/users?${params}`,
       );
       if (!response.ok) {
@@ -112,7 +113,7 @@ export default function UsersPage() {
     e.preventDefault();
 
     try {
-      const response = await fetch("http://localhost:8080/api/admin/users", {
+      const response = await fetchWithAuth("http://localhost:8080/api/admin/users", {
         method: "PATCH",
         cache: "no-store",
         headers: {
@@ -160,7 +161,7 @@ export default function UsersPage() {
     if (!confirm("Bạn có chắc chắn muốn xóa người dùng này?")) return;
 
     try {
-      const response = await fetch(
+      const response = await fetchWithAuth(
         `http://localhost:8080/api/admin/users?id=${id}`,
         {
           method: "DELETE",

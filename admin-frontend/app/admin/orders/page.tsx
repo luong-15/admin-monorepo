@@ -2,6 +2,7 @@
 
 import type React from "react";
 import { useEffect, useState, useCallback } from "react";
+import { fetchWithAuth } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -171,7 +172,7 @@ export default function OrdersPage() {
       if (debouncedOrdersSearch) params.append("search", debouncedOrdersSearch);
       if (ordersStatusFilter && ordersStatusFilter !== "all")
         params.append("status", ordersStatusFilter);
-      const response = await fetch(
+      const response = await fetchWithAuth(
         `http://localhost:8080/api/admin/orders?${params}`,
         { cache: "no-store" },
       );
@@ -203,7 +204,7 @@ export default function OrdersPage() {
       updates.payment_status = newPaymentStatus;
     if (Object.keys(updates).length === 0) return;
     try {
-      const response = await fetch(
+      const response = await fetchWithAuth(
         `http://localhost:8080/api/admin/orders/${selectedOrder.id}`,
         {
           method: "PATCH",
@@ -223,7 +224,7 @@ export default function OrdersPage() {
         setTimeout(async () => {
           try {
             const params = new URLSearchParams({ page: "1", limit: "50" });
-            const freshResponse = await fetch(
+            const freshResponse = await fetchWithAuth(
               `http://localhost:8080/api/admin/orders?${params}`,
               {
                 cache: "no-store",
@@ -372,7 +373,7 @@ export default function OrdersPage() {
                           variant="ghost"
                           className="rounded-full hover:bg-primary hover:text-primary-foreground transition-all shadow-none"
                           onClick={async () => {
-                            const res = await fetch(
+                            const res = await fetchWithAuth(
                               `http://localhost:8080/api/admin/orders/${order.id}`,
                               { cache: "no-store" },
                             );

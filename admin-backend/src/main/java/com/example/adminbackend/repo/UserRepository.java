@@ -14,8 +14,9 @@ public class UserRepository {
 
     public String findRoleByUserId(String userId) {
         try {
+            // In Supabase, the role is stored in raw_app_meta_data ->> 'role' in auth.users
             return jdbcTemplate.queryForObject(
-                    "select role from users where id = ? limit 1",
+                    "select (raw_app_meta_data ->> 'role') from auth.users where id = cast(? as uuid) limit 1",
                     new Object[]{userId},
                     String.class
             );

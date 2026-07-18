@@ -4,6 +4,7 @@ server:
 supabase:
   jwks-url: ${SUPABASE_JWKS_URL:https://jbpaivqemmarharbjbyv.supabase.co/auth/v1/keys}
   jwt-issuer: ${SUPABASE_JWT_ISSUER:https://jbpaivqemmarharbjbyv.supabase.co/auth/v1}
+  jwt-secret: ${SUPABASE_JWT_SECRET:z95fJ4L21V0v69rHXd+lZwvdA2zfrWY7u+1SHwrJdz9cRqF51qHbMIPPQf9CeehVqgWvS5qThq7SvX/Vsrdexw==}
 
 spring:
   datasource:

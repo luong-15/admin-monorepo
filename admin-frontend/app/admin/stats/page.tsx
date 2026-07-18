@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
+import { fetchWithAuth } from "@/lib/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
@@ -71,7 +72,7 @@ export default function StatsPage() {
     try {
       setLoading(true)
       setError(null)
-      const res = await fetch("/api/admin/stats")
+      const res = await fetchWithAuth("http://localhost:8080/api/admin/stats")
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const json = await res.json()
       const statsData = json.data ?? json

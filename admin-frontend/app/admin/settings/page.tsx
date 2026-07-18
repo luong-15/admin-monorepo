@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { fetchWithAuth } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -54,7 +55,7 @@ export default function AdminSettingsPage() {
 
   // Fetch settings on mount
   useEffect(() => {
-    fetch("/api/admin/settings")
+    fetchWithAuth("http://localhost:8080/api/admin/settings")
       .then((res) => res.json())
       .then((data) => {
         if (data && Object.keys(data).length > 0) {
@@ -69,7 +70,7 @@ export default function AdminSettingsPage() {
 
   const handleSave = async () => {
     try {
-      const response = await fetch("/api/admin/settings", {
+      const response = await fetchWithAuth("http://localhost:8080/api/admin/settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(settings),

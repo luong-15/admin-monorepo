@@ -2,6 +2,7 @@
 
 import type React from "react";
 import { useEffect, useState, useCallback } from "react";
+import { fetchWithAuth } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -89,7 +90,7 @@ export default function ProductsPage() {
   // Fetch categories
   const fetchCategories = useCallback(async () => {
     try {
-      const response = await fetch(
+      const response = await fetchWithAuth(
         "http://localhost:8080/api/admin/categories",
         { cache: "no-store" },
       );
@@ -113,7 +114,7 @@ export default function ProductsPage() {
       if (productsCategoryFilter !== "all")
         params.append("category_id", productsCategoryFilter);
 
-      const response = await fetch(
+      const response = await fetchWithAuth(
         `http://localhost:8080/api/admin/products?${params}`,
         {
           cache: "no-store",
@@ -174,7 +175,7 @@ export default function ProductsPage() {
       };
 
       const method = selectedProduct ? "PUT" : "POST";
-      const response = await fetch("http://localhost:8080/api/admin/products", {
+      const response = await fetchWithAuth("http://localhost:8080/api/admin/products", {
         cache: "no-store",
         method,
         headers: { "Content-Type": "application/json" },
@@ -214,7 +215,7 @@ export default function ProductsPage() {
             limit: "50",
           });
 
-          const freshResponse = await fetch(
+          const freshResponse = await fetchWithAuth(
             `http://localhost:8080/api/admin/products?${params}`,
             {
               cache: "no-store",
@@ -237,7 +238,7 @@ export default function ProductsPage() {
 
   const handleDeleteProduct = async (id: string) => {
     if (!confirm("Xóa sản phẩm này?")) return;
-    await fetch(`http://localhost:8080/api/admin/products?id=${id}`, {
+    await fetchWithAuth(`http://localhost:8080/api/admin/products?id=${id}`, {
       method: "DELETE",
     });
     fetchProducts();

@@ -37,7 +37,9 @@ public class SupabaseJwtAuthFilter extends OncePerRequestFilter {
 
         String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Missing Bearer token");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("{\"error\":\"Missing or invalid Authorization header\"}");
+            response.setContentType("application/json");
             return;
         }
 
@@ -56,7 +58,9 @@ public class SupabaseJwtAuthFilter extends OncePerRequestFilter {
 
             boolean isAdmin = "admin".equalsIgnoreCase(claimRole) || "admin".equalsIgnoreCase(dbRole);
             if (!isAdmin) {
-                response.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden");
+                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                response.getWriter().write("{\"error\":\"User does not have admin role\"}");
+                response.setContentType("application/json");
                 return;
             }
 
@@ -70,11 +74,13 @@ public class SupabaseJwtAuthFilter extends OncePerRequestFilter {
 
             filterChain.doFilter(request, response);
         } catch (SecurityException se) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid token");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("{\"error\":\"" + se.getMessage() + "\"}");
+            response.setContentType("application/json");
         } catch (Exception e) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
-        } finally {
-            SecurityContextHolder.clearContext();
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("{\"error\":\"Token verification failed: " + e.getMessage() + "\"}");
+            response.setContentType("application/json");
         }
     }
 }

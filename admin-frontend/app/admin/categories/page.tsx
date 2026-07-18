@@ -2,6 +2,7 @@
 
 import type React from "react";
 import { useEffect, useState, useCallback } from "react";
+import { fetchWithAuth } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -57,7 +58,7 @@ export default function CategoriesPage() {
   const fetchCategories = useCallback(async () => {
     try {
       setCategoriesLoading(true);
-      const response = await fetch(
+      const response = await fetchWithAuth(
         "http://localhost:8080/api/admin/categories",
         {
           cache: "no-store",
@@ -124,9 +125,9 @@ export default function CategoriesPage() {
       };
 
       const method = isEdit ? "PUT" : "POST";
-      const url = "/api/admin/categories";
+      const url = "http://localhost:8080/api/admin/categories";
 
-      const response = await fetch(url, {
+      const response = await fetchWithAuth(url, {
         cache: "no-store",
         method,
         headers: { "Content-Type": "application/json" },
@@ -150,7 +151,7 @@ export default function CategoriesPage() {
       // Wait then refresh data directly
       setTimeout(async () => {
         try {
-          const freshResponse = await fetch(
+          const freshResponse = await fetchWithAuth(
             `http://localhost:8080/api/admin/categories`,
             {
               cache: "no-store",
@@ -182,9 +183,12 @@ export default function CategoriesPage() {
     )
       return;
     try {
-      const response = await fetch(`/api/admin/categories?id=${id}`, {
-        method: "DELETE",
-      });
+      const response = await fetchWithAuth(
+        `http://localhost:8080/api/admin/categories?id=${id}`,
+        {
+          method: "DELETE",
+        },
+      );
       if (!response.ok) throw new Error("Failed to delete category");
       setCategories((prev) => prev.filter((c) => c.id !== id));
     } catch (error) {
