@@ -75,13 +75,16 @@ public class SupabaseJwtAuthFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
         } catch (SecurityException se) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("{\"error\":\"" + se.getMessage() + "\"}");
             response.setContentType("application/json");
+            response.getWriter().write("{\"error\":\"" + se.getMessage() + "\"}");
+            return;
         } catch (Exception e) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("{\"error\":\"Token verification failed: " + e.getMessage() + "\"}");
             response.setContentType("application/json");
+            response.getWriter().write("{\"error\":\"Token verification failed: " + e.getMessage() + "\"}");
+            return;
         }
+
     }
 }
 

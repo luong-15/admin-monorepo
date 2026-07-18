@@ -9,11 +9,8 @@ supabase:
 spring:
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://aws-1-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require}
-    
     username: ${SPRING_DATASOURCE_USERNAME:postgres.jbpaivqemmarharbjbyv}
-    
     password: ${SPRING_DATASOURCE_PASSWORD:QhKPb9VbpT2pBoMI}
-    
     driver-class-name: org.postgresql.Driver
   jdbc:
     template:
@@ -27,3 +24,5 @@ spring:
 logging:
   level:
     root: INFO
+    com.example.adminbackend: DEBUG
+    com.nimbusds: INFO
