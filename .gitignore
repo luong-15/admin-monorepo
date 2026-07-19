@@ -36,12 +36,11 @@ node_modules/
 .netlify/
 
 # Environment
-.env
-.env.local
-.env.*.local
+.env*
 
 # TypeScript
 *.tsbuildinfo
+next-env.d.ts
 
 # Coverage
 coverage/
