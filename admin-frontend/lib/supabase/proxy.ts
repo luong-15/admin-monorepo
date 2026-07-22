@@ -34,8 +34,7 @@ export async function proxy(request: NextRequest) {
       data: { user },
     } = await supabase.auth.getUser();
 
-    // Redirect to login if accessing protected routes without auth
-    if (request.nextUrl.pathname.startsWith("/dashboard") && !user) {
+    if (request.nextUrl.pathname.startsWith("/admin") && !user) {
       const url = request.nextUrl.clone();
       url.pathname = "/auth/login";
       return NextResponse.redirect(url);

@@ -68,9 +68,8 @@ export default function AdminLayout({
         setEmail(authUser.email || null);
 
         const appMetadata = authUser.app_metadata || {};
-        const userMetadata = authUser.user_metadata || {};
-        
-        const rawRole = appMetadata.role || userMetadata.role;
+        const userMetadata = authUser.user_metadata || {}; 
+        const rawRole = appMetadata.role;
         const role = typeof rawRole === "string" ? rawRole.toLowerCase() : null;
         const isAdmin = role === "admin" || appMetadata.is_admin === true;
 

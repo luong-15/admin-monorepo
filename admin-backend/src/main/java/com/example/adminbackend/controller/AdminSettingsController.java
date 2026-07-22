@@ -1,5 +1,7 @@
 package com.example.adminbackend.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
@@ -10,6 +12,8 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/admin/settings")
 public class AdminSettingsController {
+
+    private static final Logger log = LoggerFactory.getLogger(AdminSettingsController.class);
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -47,7 +51,8 @@ public class AdminSettingsController {
             }
             return ResponseEntity.ok(settings);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            log.warn("Request failed", e);
+            return ResponseEntity.internalServerError().body(Map.of("error", "Request failed"));
         }
     }
 
@@ -61,9 +66,17 @@ public class AdminSettingsController {
                 id = existing.get("id").toString();
             } catch (Exception ignored) {}
 
-            BigDecimal taxRate = body.get("default_tax_rate") != null 
-                    ? new BigDecimal(body.get("default_tax_rate").toString()) 
-                    : BigDecimal.valueOf(10.0);
+            BigDecimal taxRate;
+            try {
+                taxRate = body.get("default_tax_rate") != null
+                        ? new BigDecimal(body.get("default_tax_rate").toString())
+                        : BigDecimal.valueOf(10.0);
+            } catch (NumberFormatException e) {
+                return ResponseEntity.badRequest().body(Map.of("error", "default_tax_rate must be a number"));
+            }
+            if (taxRate.signum() < 0 || taxRate.compareTo(BigDecimal.valueOf(100)) > 0) {
+                return ResponseEntity.badRequest().body(Map.of("error", "default_tax_rate must be between 0 and 100"));
+            }
 
             Boolean maintenanceMode = body.get("maintenance_mode") != null 
                     ? (Boolean) body.get("maintenance_mode") 
@@ -92,7 +105,8 @@ public class AdminSettingsController {
 
             return ResponseEntity.ok(Map.of("success", true));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            log.warn("Request failed", e);
+            return ResponseEntity.internalServerError().body(Map.of("error", "Request failed"));
         }
     }
 }

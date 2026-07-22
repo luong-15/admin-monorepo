@@ -35,17 +35,20 @@ public class SupabaseJwtVerifier {
     private final RemoteJWKSet<SecurityContext> jwkSource;
     private final String jwtSecret;
     private final String issuer;
+    private final String audience;
 
     public SupabaseJwtVerifier(
             @Value("${supabase.jwks-url}") String jwksUrl,
             @Value("${supabase.jwt-secret:}") String jwtSecret,
-            @Value("${supabase.jwt-issuer}") String issuer
+            @Value("${supabase.jwt-issuer}") String issuer,
+            @Value("${supabase.jwt-audience:authenticated}") String audience
     ) throws Exception {
         this.jwkSource = new RemoteJWKSet<>(new URL(jwksUrl));
         this.jwtSecret = jwtSecret;
         this.issuer = issuer;
-        logger.info("SupabaseJwtVerifier initialized with issuer: {}, jwtSecret configured: {}", 
-            issuer, !jwtSecret.isBlank());
+        this.audience = audience;
+        logger.info("SupabaseJwtVerifier initialized (issuer set: {}, jwtSecret configured: {})",
+                issuer != null && !issuer.isBlank(), !jwtSecret.isBlank());
     }
 
     public SupabaseClaims verifyAndExtract(String token) throws Exception {
@@ -64,12 +67,26 @@ public class SupabaseJwtVerifier {
             throw new SecurityException("Token is expired");
         }
 
-        // Basic issuer check
-        if (claimsSet.getIssuer() != null && issuer != null && !issuer.isBlank()) {
-            if (!issuer.equals(claimsSet.getIssuer())) {
-                logger.warn("Issuer mismatch. Expected: {}, Got: {}", issuer, claimsSet.getIssuer());
-                throw new SecurityException("Invalid issuer");
-            }
+        // Issuer must always be present and match — don't skip the check just
+        // because the token happens to omit the claim.
+        if (issuer == null || issuer.isBlank() || !issuer.equals(claimsSet.getIssuer())) {
+            logger.warn("Issuer mismatch or missing. Expected: {}", issuer);
+            throw new SecurityException("Invalid issuer");
+        }
+
+        // Audience must match too — without this check, a token minted for a
+        // different Supabase-backed app (or a different purpose) would still verify.
+        List<String> audiences = claimsSet.getAudience();
+        if (audience != null && !audience.isBlank()
+                && (audiences == null || !audiences.contains(audience))) {
+            logger.warn("Audience mismatch. Expected: {}", audience);
+            throw new SecurityException("Invalid audience");
+        }
+
+        // not-before check
+        Date notBefore = claimsSet.getNotBeforeTime();
+        if (notBefore != null && new Date().before(notBefore)) {
+            throw new SecurityException("Token not yet valid");
         }
 
         JWSHeader header = jwt.getHeader();
@@ -107,35 +124,22 @@ public class SupabaseJwtVerifier {
                         null
                 );
 
+                if (keyId == null || keyId.isBlank()) {
+                    // Refuse to guess a key when the token doesn't say which one it used.
+                    throw new SecurityException("Token is missing a key ID (kid)");
+                }
+
                 if (matches != null && !matches.isEmpty()) {
-                    logger.debug("Found {} matching keys in JWKS", matches.size());
                     JWK jwk = matches.get(0);
                     if (jwk instanceof RSAKey k) {
                         rsaKey = k;
-                        logger.debug("Successfully extracted RSA key");
-                    }
-                } else {
-                    logger.warn("No matching RSA key found in JWKS for keyID: {}", keyId);
-                    try {
-                        List<JWK> allKeys = jwkSource.get(
-                                new JWKSelector(new JWKMatcher.Builder().keyType(KeyType.RSA).build()),
-                                null
-                        );
-                        if (allKeys != null && !allKeys.isEmpty()) {
-                            logger.info("Available RSA keys in JWKS: {}", allKeys.size());
-                            JWK jwk = allKeys.get(0);
-                            if (jwk instanceof RSAKey k) {
-                                rsaKey = k;
-                                logger.warn("Using fallback RSA key (first available)");
-                            }
-                        }
-                    } catch (Exception e) {
-                        logger.error("Error fetching all JWKS keys: {}", e.getMessage());
                     }
                 }
 
                 if (rsaKey == null) {
-                    logger.error("Unable to resolve signing key from JWKS. KeyID: {}", header.getKeyID());
+                    // Deliberately do NOT fall back to "any available key" here — doing
+                    // so would let a token signed with the wrong key still verify.
+                    logger.warn("No matching RSA key found in JWKS for keyID: {}", keyId);
                     throw new SecurityException("Unable to resolve signing key from JWKS");
                 }
 
@@ -176,8 +180,6 @@ public class SupabaseJwtVerifier {
             role = claimsSet.getStringClaim("user_role");
         }
 
-
-        logger.debug("Extracted claims - UserId: {}, Email: {}, Role: {}", userId, email, role);
 
         Map<String, Object> raw = new HashMap<>(claimsSet.getClaims());
 

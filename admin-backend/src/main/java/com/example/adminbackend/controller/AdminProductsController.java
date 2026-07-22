@@ -1,5 +1,7 @@
 package com.example.adminbackend.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -10,6 +12,8 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/admin/products")
 public class AdminProductsController {
+
+    private static final Logger log = LoggerFactory.getLogger(AdminProductsController.class);
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -26,6 +30,8 @@ public class AdminProductsController {
             @RequestParam(required = false, name = "category_id") String categoryId
     ) {
 
+        page = Math.max(1, page);
+        limit = Math.min(Math.max(1, limit), 200); // clamp: no unbounded/huge page sizes
         int offset = Math.max(0, (page - 1) * limit);
 
         String whereSql = " where 1=1 ";
@@ -86,6 +92,10 @@ public class AdminProductsController {
         // Best-effort JDBC implementation (schema may vary).
         // If columns are missing in your DB, this will throw and should be adjusted.
         try {
+            String validationError = validateProduct(body);
+            if (validationError != null) {
+                return ResponseEntity.badRequest().body(Map.of("error", validationError));
+            }
             jdbcTemplate.update(
                     "insert into products (name, description, price, original_price, discount_price, stock, brand, category_id, image_url, images, is_featured, is_deal, specs) " +
                             "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
@@ -105,7 +115,8 @@ public class AdminProductsController {
             );
             return ResponseEntity.ok(Map.of("success", true));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            log.warn("Request failed", e);
+            return ResponseEntity.internalServerError().body(Map.of("error", "Request failed"));
         }
     }
 
@@ -113,6 +124,13 @@ public class AdminProductsController {
     public ResponseEntity<?> updateProduct(@RequestBody Map<String, Object> body) {
         try {
             Object id = body.get("id");
+            if (id == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Product ID is required"));
+            }
+            String validationError = validateProduct(body);
+            if (validationError != null) {
+                return ResponseEntity.badRequest().body(Map.of("error", validationError));
+            }
             jdbcTemplate.update(
                     "update products set name=?, description=?, price=?, original_price=?, discount_price=?, stock=?, brand=?, category_id=?, image_url=?, images=?, is_featured=?, is_deal=?, specs=? where id=?",
                     body.get("name"),
@@ -132,8 +150,44 @@ public class AdminProductsController {
             );
             return ResponseEntity.ok(Map.of("success", true));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            log.warn("Request failed", e);
+            return ResponseEntity.internalServerError().body(Map.of("error", "Request failed"));
         }
+    }
+
+    // Minimal server-side validation — the frontend can't be trusted to enforce this,
+    // since requests can be sent directly to the API.
+    private String validateProduct(Map<String, Object> body) {
+        Object name = body.get("name");
+        if (name == null || name.toString().isBlank()) {
+            return "Product name is required";
+        }
+        if (name.toString().length() > 300) {
+            return "Product name is too long";
+        }
+        for (String field : new String[]{"price", "original_price", "discount_price"}) {
+            Object v = body.get(field);
+            if (v != null) {
+                try {
+                    if (new java.math.BigDecimal(v.toString()).signum() < 0) {
+                        return field + " cannot be negative";
+                    }
+                } catch (NumberFormatException e) {
+                    return field + " must be a number";
+                }
+            }
+        }
+        Object stock = body.get("stock");
+        if (stock != null) {
+            try {
+                if (Integer.parseInt(stock.toString()) < 0) {
+                    return "stock cannot be negative";
+                }
+            } catch (NumberFormatException e) {
+                return "stock must be an integer";
+            }
+        }
+        return null;
     }
 
     @DeleteMapping
@@ -142,7 +196,8 @@ public class AdminProductsController {
             jdbcTemplate.update("delete from products where id=?", id);
             return ResponseEntity.ok(Map.of("success", true));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            log.warn("Request failed", e);
+            return ResponseEntity.internalServerError().body(Map.of("error", "Request failed"));
         }
     }
 

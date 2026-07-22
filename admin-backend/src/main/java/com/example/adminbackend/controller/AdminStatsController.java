@@ -1,5 +1,7 @@
 package com.example.adminbackend.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,6 +14,8 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/admin/stats")
 public class AdminStatsController {
+
+    private static final Logger log = LoggerFactory.getLogger(AdminStatsController.class);
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -56,7 +60,8 @@ public class AdminStatsController {
                     "totalRevenue", totalRevenue
             ));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            log.warn("Request failed", e);
+            return ResponseEntity.internalServerError().body(Map.of("error", "Request failed"));
         }
     }
 }

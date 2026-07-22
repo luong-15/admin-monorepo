@@ -60,5 +60,19 @@ public class GlobalExceptionHandler {
         body.put("timestamp", Instant.now().toString());
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(body);
     }
+
+    // Safety net: anything not caught by a controller's own try/catch still
+    // gets logged with full detail server-side, but the client only ever sees
+    // a generic message — never a raw exception/stack trace.
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, Object>> handleUnexpected(Exception ex, HttpServletRequest request) {
+        log.error("Unhandled exception on {} {}", request.getMethod(), request.getRequestURI(), ex);
+
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("error", "INTERNAL_ERROR");
+        body.put("message", "Something went wrong. Please try again.");
+        body.put("timestamp", Instant.now().toString());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
+    }
 }
 

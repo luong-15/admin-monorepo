@@ -1,5 +1,7 @@
 package com.example.adminbackend.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
@@ -12,6 +14,8 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/admin/users")
 public class AdminUsersController {
+
+    private static final Logger log = LoggerFactory.getLogger(AdminUsersController.class);
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -26,6 +30,8 @@ public class AdminUsersController {
             @RequestParam(required = false) String search
     ) {
         try {
+            page = Math.max(1, page);
+            limit = Math.min(Math.max(1, limit), 200); // clamp: no unbounded/huge page sizes
             int offset = Math.max(0, (page - 1) * limit);
             String whereSql = " where 1=1 ";
             List<Object> params = new ArrayList<>();
@@ -73,7 +79,8 @@ public class AdminUsersController {
                     )
             ));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            log.warn("Request failed", e);
+            return ResponseEntity.internalServerError().body(Map.of("error", "Request failed"));
         }
     }
 
@@ -84,11 +91,23 @@ public class AdminUsersController {
             if (idObj == null) {
                 return ResponseEntity.badRequest().body(Map.of("error", "User ID is required"));
             }
-            UUID id = UUID.fromString(idObj.toString());
+            UUID id;
+            try {
+                id = UUID.fromString(idObj.toString());
+            } catch (IllegalArgumentException ex) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Invalid user ID"));
+            }
 
             // 1. Update email in auth.users if provided
             if (body.containsKey("email") && body.get("email") != null) {
-                jdbcTemplate.update("update auth.users set email=? where id=?", body.get("email").toString(), id);
+                String email = body.get("email").toString().trim();
+                if (!email.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
+                    return ResponseEntity.badRequest().body(Map.of("error", "Invalid email format"));
+                }
+                // Note: writing directly to auth.users bypasses Supabase's own email-change
+                // flow (re-confirmation, etc). Prefer the Supabase Admin API for email changes
+                // where possible; keep this only for trusted admin-initiated corrections.
+                jdbcTemplate.update("update auth.users set email=? where id=?", email, id);
             }
 
             // 2. Upsert user profile details
@@ -116,20 +135,30 @@ public class AdminUsersController {
 
             return ResponseEntity.ok(Map.of("success", true));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            log.warn("Request failed", e);
+            return ResponseEntity.internalServerError().body(Map.of("error", "Request failed"));
         }
     }
 
     @DeleteMapping
     public ResponseEntity<?> deleteUser(@RequestParam("id") String idStr) {
         try {
-            UUID id = UUID.fromString(idStr);
-            // Delete profile details first, then the user
+            UUID id;
+            try {
+                id = UUID.fromString(idStr);
+            } catch (IllegalArgumentException ex) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Invalid user ID"));
+            }
+            // Note: deleting directly from auth.users bypasses Supabase's Admin API, which
+            // also cleans up sessions/identities. Prefer calling the Supabase Admin API
+            // (DELETE /auth/v1/admin/users/{id}) with the service-role key instead of raw SQL
+            // where you control that key.
             jdbcTemplate.update("delete from public.user_profiles where id=?", id);
             jdbcTemplate.update("delete from auth.users where id=?", id);
             return ResponseEntity.ok(Map.of("success", true));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            log.warn("Request failed", e);
+            return ResponseEntity.internalServerError().body(Map.of("error", "Request failed"));
         }
     }
 }

@@ -11,6 +11,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
@@ -18,6 +20,7 @@ import java.util.List;
 @Component
 public class SupabaseJwtAuthFilter extends OncePerRequestFilter {
 
+    private static final Logger log = LoggerFactory.getLogger(SupabaseJwtAuthFilter.class);
     private final SupabaseJwtVerifier verifier;
     private final UserRepository userRepository;
 
@@ -74,14 +77,18 @@ public class SupabaseJwtAuthFilter extends OncePerRequestFilter {
 
             filterChain.doFilter(request, response);
         } catch (SecurityException se) {
+            log.warn("JWT rejected: {}", se.getMessage());
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
-            response.getWriter().write("{\"error\":\"" + se.getMessage() + "\"}");
+            response.getWriter().write("{\"error\":\"Invalid or expired token\"}");
             return;
         } catch (Exception e) {
+            // Never echo e.getMessage() to the client — it can leak internal
+            // details (stack traces, key IDs, DB errors surfaced via JDBC, etc).
+            log.warn("Token verification failed", e);
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
-            response.getWriter().write("{\"error\":\"Token verification failed: " + e.getMessage() + "\"}");
+            response.getWriter().write("{\"error\":\"Token verification failed\"}");
             return;
         }
 

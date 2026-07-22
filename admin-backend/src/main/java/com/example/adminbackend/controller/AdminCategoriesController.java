@@ -1,5 +1,7 @@
 package com.example.adminbackend.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
@@ -11,6 +13,8 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/admin/categories")
 public class AdminCategoriesController {
+
+    private static final Logger log = LoggerFactory.getLogger(AdminCategoriesController.class);
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -26,13 +30,18 @@ public class AdminCategoriesController {
             );
             return ResponseEntity.ok(categories);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            log.warn("Request failed", e);
+            return ResponseEntity.internalServerError().body(Map.of("error", "Request failed"));
         }
     }
 
     @PostMapping
     public ResponseEntity<?> createCategory(@RequestBody Map<String, Object> body) {
         try {
+            Object name = body.get("name");
+            if (name == null || name.toString().isBlank()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Category name is required"));
+            }
             String idStr = body.get("id") != null ? body.get("id").toString() : null;
             UUID id = idStr != null ? UUID.fromString(idStr) : UUID.randomUUID();
             
@@ -55,7 +64,8 @@ public class AdminCategoriesController {
             );
             return ResponseEntity.ok(Map.of("success", true, "id", id.toString()));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            log.warn("Request failed", e);
+            return ResponseEntity.internalServerError().body(Map.of("error", "Request failed"));
         }
     }
 
@@ -86,7 +96,8 @@ public class AdminCategoriesController {
             );
             return ResponseEntity.ok(Map.of("success", true));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            log.warn("Request failed", e);
+            return ResponseEntity.internalServerError().body(Map.of("error", "Request failed"));
         }
     }
 
@@ -97,7 +108,8 @@ public class AdminCategoriesController {
             jdbcTemplate.update("delete from categories where id=?", id);
             return ResponseEntity.ok(Map.of("success", true));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            log.warn("Request failed", e);
+            return ResponseEntity.internalServerError().body(Map.of("error", "Request failed"));
         }
     }
 }

@@ -1,5 +1,7 @@
 package com.example.adminbackend.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -9,6 +11,8 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/admin/orders")
 public class AdminOrdersController {
+
+    private static final Logger log = LoggerFactory.getLogger(AdminOrdersController.class);
 
     private final org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
 
@@ -24,6 +28,8 @@ public class AdminOrdersController {
             @RequestParam(required = false) String status
     ) {
         // JDBC implementation (best-effort). FE expects { data, pagination }
+        page = Math.max(1, page);
+        limit = Math.min(Math.max(1, limit), 200); // clamp: no unbounded/huge page sizes
         int offset = Math.max(0, (page - 1) * limit);
 
         String whereSql = " where 1=1 ";
@@ -95,7 +101,8 @@ public class AdminOrdersController {
 
             return ResponseEntity.ok(order);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            log.warn("Request failed", e);
+            return ResponseEntity.internalServerError().body(Map.of("error", "Request failed"));
         }
     }
 
@@ -106,10 +113,25 @@ public class AdminOrdersController {
             @RequestBody Map<String, Object> body
     ) {
         try {
+            java.util.Set<String> validStatuses = java.util.Set.of(
+                    "pending", "processing", "shipped", "delivered", "cancelled", "refunded");
+            java.util.Set<String> validPaymentStatuses = java.util.Set.of(
+                    "pending", "paid", "failed", "refunded");
+
             // Update only known fields if present
             String status = body.get("status") != null ? body.get("status").toString() : null;
             String paymentStatus = body.get("payment_status") != null ? body.get("payment_status").toString() : null;
             String adminNotes = body.get("admin_notes") != null ? body.get("admin_notes").toString() : null;
+
+            if (status != null && !validStatuses.contains(status.toLowerCase())) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Invalid status value"));
+            }
+            if (paymentStatus != null && !validPaymentStatuses.contains(paymentStatus.toLowerCase())) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Invalid payment_status value"));
+            }
+            if (adminNotes != null && adminNotes.length() > 2000) {
+                return ResponseEntity.badRequest().body(Map.of("error", "admin_notes is too long"));
+            }
 
             if (status != null) {
                 jdbcTemplate.update("update orders set status=? where id=?", status, id);
@@ -123,7 +145,8 @@ public class AdminOrdersController {
 
             return ResponseEntity.ok(Map.of("success", true));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            log.warn("Request failed", e);
+            return ResponseEntity.internalServerError().body(Map.of("error", "Request failed"));
         }
     }
 }
