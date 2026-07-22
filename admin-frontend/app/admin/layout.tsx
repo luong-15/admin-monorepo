@@ -49,7 +49,7 @@ export default function AdminLayout({
   useEffect(() => {
     let isMounted = true;
     // Khởi tạo ở đây để đảm bảo an toàn và không bị tạo lại khi re-render
-    const supabase = createBrowserClient(); 
+    const supabase = createBrowserClient();
 
     const checkAuth = async () => {
       try {
@@ -68,7 +68,7 @@ export default function AdminLayout({
         setEmail(authUser.email || null);
 
         const appMetadata = authUser.app_metadata || {};
-        const userMetadata = authUser.user_metadata || {}; 
+        const userMetadata = authUser.user_metadata || {};
         const rawRole = appMetadata.role;
         const role = typeof rawRole === "string" ? rawRole.toLowerCase() : null;
         const isAdmin = role === "admin" || appMetadata.is_admin === true;
@@ -123,7 +123,7 @@ export default function AdminLayout({
   if (loading) return <AdminSkeleton />;
 
   return (
-    <div className="min-h-screen bg-muted/30 dark:bg-background">
+    <div className="min-h-screen bg-muted/30 dark:bg-background flex flex-col">
       {/* Header */}
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/60 backdrop-blur-xl">
         <div className="container flex h-16 items-center justify-between px-4">
@@ -147,98 +147,104 @@ export default function AdminLayout({
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
-        <div className="flex flex-col lg:flex-row gap-10">
-          {/* Sidebar */}
-          <aside
-            className={cn(
-              "fixed inset-y-0 left-0 z-50 w-72 bg-background border-r p-6 transition-transform duration-300 lg:relative lg:translate-x-0 lg:w-64 lg:p-0 lg:bg-transparent lg:border-none",
-              sidebarOpen ? "translate-x-0" : "-translate-x-full",
-            )}
-          >
-            <div className="sticky top-24 flex flex-col gap-6">
-              {/* Profile Card */}
-              <div className="rounded-2xl border border-border/50 bg-card p-4 shadow-sm backdrop-blur-md">
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-10 w-10 ring-2 ring-primary/10">
-                    <AvatarImage src={user?.avatar_url || undefined} />
-                    <AvatarFallback className="bg-primary/5 text-primary font-bold">
-                      {user?.full_name?.[0] || email?.[0]?.toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-bold">
-                      {user?.full_name || "Administrator"}
-                    </p>
-                    <p className="truncate text-[10px] text-muted-foreground uppercase tracking-widest font-medium">
-                      {email?.split("@")[0]}
-                    </p>
+      <main className="flex-1 overflow-y-auto">
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex flex-col lg:flex-row gap-6 lg:gap-10">
+            {/* Sidebar */}
+            <aside
+              className={cn(
+                "fixed inset-y-16 left-0 z-50 w-72 bg-background border-r p-6 overflow-y-auto transition-transform duration-300 lg:relative lg:inset-auto lg:translate-x-0 lg:w-64 lg:p-0 lg:bg-transparent lg:border-none lg:overflow-visible",
+                sidebarOpen ? "translate-x-0" : "-translate-x-full",
+              )}
+            >
+              <div className="flex flex-col gap-6 lg:sticky lg:top-8">
+                {/* Profile Card */}
+                <div className="rounded-2xl border border-border/50 bg-card p-4 shadow-sm backdrop-blur-md">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-10 w-10 ring-2 ring-primary/10">
+                      <AvatarImage src={user?.avatar_url || undefined} />
+                      <AvatarFallback className="bg-primary/5 text-primary font-bold">
+                        {user?.full_name?.[0] || email?.[0]?.toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold">
+                        {user?.full_name || "Administrator"}
+                      </p>
+                      <p className="truncate text-[10px] text-muted-foreground uppercase tracking-widest font-medium">
+                        {email?.split("@")[0]}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Nav Links */}
-              <nav className="flex flex-col gap-1">
-                {adminSidebarItems.map((item) => {
-                  const isActive = pathname === item.href;
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setSidebarOpen(false)}
-                      className={cn(
-                        "group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all",
-                        isActive
-                          ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 scale-[1.02]"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground dark:hover:bg-card",
-                      )}
-                    >
-                      <item.icon
+                {/* Nav Links */}
+                <nav className="flex flex-col gap-1">
+                  {adminSidebarItems.map((item) => {
+                    const isActive = pathname === item.href;
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => setSidebarOpen(false)}
                         className={cn(
-                          "h-5 w-5 transition-transform group-hover:scale-110",
+                          "group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all",
                           isActive
-                            ? "text-primary-foreground"
-                            : "text-muted-foreground",
+                            ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 scale-[1.02]"
+                            : "text-muted-foreground hover:bg-muted hover:text-foreground dark:hover:bg-card",
                         )}
-                      />
-                      {item.label}
-                    </Link>
-                  );
-                })}
-              </nav>
+                      >
+                        <item.icon
+                          className={cn(
+                            "h-5 w-5 transition-transform group-hover:scale-110",
+                            isActive
+                              ? "text-primary-foreground"
+                              : "text-muted-foreground",
+                          )}
+                        />
+                        {item.label}
+                      </Link>
+                    );
+                  })}
+                </nav>
 
-              <div className="mt-auto pt-6 border-t border-border/40">
-                <Button
-                  variant="ghost"
-                  onClick={handleLogout}
-                  className="w-full justify-start gap-3 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/5"
-                >
-                  <LogOut className="h-5 w-5" />
-                  Đăng xuất
-                </Button>
+                <div className="mt-auto pt-6 border-t border-border/40">
+                  <Button
+                    variant="ghost"
+                    onClick={handleLogout}
+                    className="w-full justify-start gap-3 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/5"
+                  >
+                    <LogOut className="h-5 w-5" />
+                    Đăng xuất
+                  </Button>
+                </div>
               </div>
-            </div>
-          </aside>
+            </aside>
 
-          {/* Overlay cho Mobile Sidebar */}
-          {sidebarOpen && (
-            <div
-              className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm lg:hidden"
-              onClick={() => setSidebarOpen(false)}
-            />
-          )}
+            {/* Overlay cho Mobile Sidebar */}
+            {sidebarOpen && (
+              <div
+                className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm lg:hidden mt-16"
+                onClick={() => setSidebarOpen(false)}
+              />
+            )}
 
-          {/* Floating Mobile Toggle Button */}
-          <Button
-            size="icon"
-            className="fixed bottom-8 right-8 z-[60] h-14 w-14 rounded-full shadow-2xl lg:hidden active:scale-90 transition-transform"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-          >
-            {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </Button>
+            {/* Floating Mobile Toggle Button */}
+            <Button
+              size="icon"
+              className="fixed bottom-8 right-8 z-[60] h-14 w-14 rounded-full shadow-2xl lg:hidden active:scale-90 transition-transform"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+            >
+              {sidebarOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
+            </Button>
 
-          {/* Content Area */}
-          <div className="flex-1 min-w-0 pb-20 lg:pb-0">{children}</div>
+            {/* Content Area */}
+            <div className="flex-1 w-full min-w-0">{children}</div>
+          </div>
         </div>
       </main>
     </div>
