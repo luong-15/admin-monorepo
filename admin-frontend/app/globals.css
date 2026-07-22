@@ -109,8 +109,6 @@
   --sidebar-ring: oklch(0.439 0 0);
 }
 
-@custom-variant dark (&:is(.dark *));
-
 @theme inline {
   --font-sans: "Geist", "Geist Fallback";
   --font-mono: "Geist Mono", "Geist Mono Fallback";
@@ -158,18 +156,18 @@
     @apply border-border outline-ring/50;
   }
 
+  html {
+    @apply bg-background;
+    transition:
+      background-color var(--duration-normal) ease,
+      color var(--duration-normal) ease;
+  }
+
   body {
     @apply bg-background text-foreground antialiased;
     font-feature-settings:
       "rlig" 1,
       "calt" 1;
-  }
-
-  /* Smooth theme transitions */
-  html {
-    transition:
-      background-color var(--duration-normal) ease,
-      color var(--duration-normal) ease;
   }
 
   /* Selection styling */
@@ -590,11 +588,24 @@
 }
 
 /* ============================================
-   Additional animations from remote branch
-   (Kept unique animations not in animations.css)
+   Additional animations from animations.css
    ============================================ */
 
-/* Unique: float with slightly different specs from animations.css */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+/* Float animations */
 .animate-float-slow {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-float {
   animation: float 3s ease-in-out infinite;
 }

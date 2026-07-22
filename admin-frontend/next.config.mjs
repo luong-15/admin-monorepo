@@ -6,6 +6,7 @@ const nextConfig = {
   experimental: {
     viewTransition: true,
     optimizePackageImports: ["framer-motion", "lucide-react"],
+    serverActions: true,
   },
   productionBrowserSourceMaps: false,
 
